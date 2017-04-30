@@ -61,8 +61,8 @@ config dhcp 'lan'
 
 The DNS servers and search domain will be announced in the RA (Router Advertisement) as well as via DHCPv6. Android/ChomeOS don't do DHCPv6, and Apple/Windows do. **As of April 2017**, Windows 10 can work in a SLAAC-only network, as it now supports the RDNSS field in the RA.
 
-#### DNS and ipv6neigh
-If you aren't running an internal DNS server, give some thought to doing so, it will make managing IPv6 *much* easier. Or, if you want the easy path to local DNS, consider running `ip6neigh` on your OpenWrt router. [ip6neigh](https://github.com/AndreBL/ip6neigh/) is a project, which *automatically* populates DNS on your router with IPv6 host names, making running a local DNS a snap, and it will make your IPv6 life *much* easier.
+#### DNS and ip6neigh
+If you aren't running an internal DNS server, give some thought to doing so. And it is really easy with [ip6neigh](https://github.com/AndreBL/ip6neigh/) running on your OpenWrt router. It is a project, which *automatically* populates DNS on your router with IPv6 host names, making running a local DNS a snap, and it will make your IPv6 life *much* easier.
 
 #### Restart networking
 
