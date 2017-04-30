@@ -59,7 +59,7 @@ config dhcp 'lan'
 	list dns '2001:4860:4860::6464'	#Google DNS64 server
 ```
 
-If you aren't running an internal DNS server, give some thought to doing so, it will make managing IPv6 *much* easier. The DNS servers and search domain will be announced in the RA (Router Advertisement) as well as via DHCPv6. Android/ChomeOS don't do DHCPv6, and Apple/Windows do.
+If you aren't running an internal DNS server, give some thought to doing so, it will make managing IPv6 *much* easier. The DNS servers and search domain will be announced in the RA (Router Advertisement) as well as via DHCPv6. Android/ChomeOS don't do DHCPv6, and Apple/Windows do. **As of April 2017**, Windows 10 can work in a SLAAC-only network, as it now supports RDNSS in the RA.
 
 Once the UCI configuration files are edited, restart networking with:
 ```
@@ -113,6 +113,12 @@ You don't have to use Google's **DNS64** service, you can roll your own, but tha
 #### More info about tayga
 
 If you wish to know more about `tayga` please look at the official [tayga website](http://www.litech.org/tayga/).
+
+### Limitations
+
+Dang those Limiations!
+
+It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages And therefore this `nat64` project is incompatible with LEDE (you *could* ask the LEDE Devs to support `tayga`, since IPv4 content is not going away anytime soon).
 
 ### About the Script Author
 
