@@ -59,7 +59,12 @@ config dhcp 'lan'
 	list dns '2001:4860:4860::6464'	#Google DNS64 server
 ```
 
-If you aren't running an internal DNS server, give some thought to doing so, it will make managing IPv6 *much* easier. The DNS servers and search domain will be announced in the RA (Router Advertisement) as well as via DHCPv6. Android/ChomeOS don't do DHCPv6, and Apple/Windows do. **As of April 2017**, Windows 10 can work in a SLAAC-only network, as it now supports RDNSS in the RA.
+The DNS servers and search domain will be announced in the RA (Router Advertisement) as well as via DHCPv6. Android/ChomeOS don't do DHCPv6, and Apple/Windows do. **As of April 2017**, Windows 10 can work in a SLAAC-only network, as it now supports the RDNSS field in the RA.
+
+#### DNS and ipv6neigh
+If you aren't running an internal DNS server, give some thought to doing so, it will make managing IPv6 *much* easier. Or, if you want the easy path to local DNS, consider running `ip6neigh` on your OpenWrt router. [ip6neigh](https://github.com/AndreBL/ip6neigh/) is a project, which *automatically* populates DNS on your router with IPv6 host names, making running a local DNS a snap, and it will make your IPv6 life *much* easier.
+
+#### Restart networking
 
 Once the UCI configuration files are edited, restart networking with:
 ```
