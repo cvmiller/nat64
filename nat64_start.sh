@@ -25,9 +25,12 @@ WAN="eth0.2"
 # Define files
 tayga_conf="/etc/tayga.conf"
 
+# Devine Vars
+NAT64_PREFIX="64:ff9b::/96"
+#NAT64_PREFIX="2001:470:ebbd:ff9b::/96"
 
 # script version
-VERSION=0.92
+VERSION=0.94
 
 
 usage () {
@@ -103,7 +106,7 @@ done
 
 
 # get some IP addresses from Router
-LAN_IP6=$(ip addr | grep '::1' | grep global | awk '{print $2}' | cut -f 1 -d '/')
+LAN_IP6=$(ip addr | grep '::1' | grep noprefixroute | grep -v 'inet6 fd' | awk '{print $2}' | cut -f 1 -d '/')
  
 WAN_IP4=$(ip addr show dev "$WAN" | grep "inet " | awk '{print $2}' | cut  -f 1 -d '/')
 
@@ -114,6 +117,12 @@ echo "=== Collected address info:"
 echo "=== WAN4 $WAN_IP4"
 echo "=== WAN6 $WAN_IP6"
 echo "=== LAN6 $LAN_IP6"
+echo "=== NAT64 Prefix $NAT64_PREFIX"
+
+# remove old NAT64 firewall entries
+iptables -D forwarding_rule -i nat64 -j ACCEPT
+ip6tables -D forwarding_rule -o nat64 -j ACCEPT
+
 
 # tayga info from tayga website http://www.litech.org/tayga/
 
@@ -128,7 +137,7 @@ mv $tayga_conf $tayga_conf.old
 touch $tayga_conf
 echo "tun-device nat64" >> $tayga_conf
 echo "ipv4-addr 192.168.2.1 " >> $tayga_conf	 
-echo "prefix  64:ff9b::/96  " >> $tayga_conf	 
+echo "prefix  $NAT64_PREFIX  " >> $tayga_conf	 
 echo "ipv6-addr $LAN_IP6" >> $tayga_conf
 echo "dynamic-pool 192.168.2.0/24" >> $tayga_conf
 echo "data-dir /tmp/db/tayga" >> $tayga_conf
@@ -138,17 +147,30 @@ if [ $DEBUG -eq 1 ]; then echo "=== tayga.conf file"; cat $tayga_conf; fi
 # configure tun interface and start tayga
 echo "=== Making tun device: nat64"
 tayga --mktun
+ip addr flush nat64
 ip link set nat64 up
+
+# clear nat64 dynamic map
+rm /tmp/db/tayga/dynamic.map
 
 ip addr add "$WAN_IP4" dev nat64	   		
 ip addr add "$WAN_IP6" dev nat64
+#ip addr add "192.168.2.1" dev nat64	   		
+#ip addr add $LAN_IP6 dev nat64
 ip route add 192.168.2.0/24 dev nat64
-ip route add 64:ff9b::/96 dev nat64
+ip route add $NAT64_PREFIX dev nat64
+
+# add NAT64 firewall entries (required for LEDE)
+iptables -A forwarding_rule -i nat64 -j ACCEPT
+ip6tables -A forwarding_rule -o nat64 -j ACCEPT
+
+# start NAT64
 tayga &
 
 # test connection
 echo "=== Testing tayga"
-ping6 -c3 64:ff9b::8.8.4.4
+NAT64_FRONT=$(echo $NAT64_PREFIX | cut -d '/' -f 1)
+ping6 -c3 $NAT64_FRONT"8.8.4.4"
 
 echo "Pau!"
 
