@@ -1,6 +1,6 @@
 ## NAT64 on OpenWRT 
 
-An IPv6 to IPv4 protocol translator for OpenWRT Chaos Calmer (15.05.1).
+An IPv6 to IPv4 protocol translator for OpenWRT Chaos Calmer (15.05.1), and LEDE 17.01.02.
 
 ### Why?
 
@@ -16,14 +16,14 @@ But you will quickly discover that much of the world's content is still only ser
 
 ### What is needed?
 
-An OpenWRT-based router, preferably running the latest release, Chaos Calmer (15.05.1). 
-* A package from the past **tayga** (available from 12.09)
+An OpenWRT-based router, preferably running the latest release, Chaos Calmer (15.05.1), or LEDE 17.01.02.
+* A package from the past **tayga** (for OpenWrt available from 12.09)
 * a little configuration, a script to start-up the **tayga** daemon
 * Google's DNS64 service.
 
-### Getting Tayga
+### Getting Tayga for OpenWrt
 
-The devs dropped the **tayga** package way back in 2012, but fortunately, it still works, *mostly*. My router is a **brcm47xx**-based, you will want to make sure you use the correct architecture for your router. You can find tayga in:
+The OpenWrt devs dropped the **tayga** package way back in 2012, but fortunately, it still works, *mostly*. My router is a **brcm47xx**-based, you will want to make sure you use the correct architecture for your router. You can find tayga in:
 ```
 https://downloads.openwrt.org/attitude_adjustment/12.09/brcm47xx/generic/packages/
 ```
@@ -35,6 +35,15 @@ opkg install tayga-xxx.pkg
 ```
 
 The tayga package will pull in the `ip` package as well, so make sure your router is connected to the internet.
+
+### Getting Tayga for LEDE
+
+Getting **tayga** for LEDE is even easier, as it is part of the distro, and can be installed directly.
+```
+opkg update
+opkg install tayga-xxx.pkg
+```
+Because **tayga** is part of the disto, it will automatically pull in dependencies like the tun kernel module.
 
 ### Configuring OpenWRT for NAT64
 
@@ -64,6 +73,36 @@ The DNS servers and search domain will be announced in the RA (Router Advertisem
 #### DNS and ip6neigh
 If you aren't running an internal DNS server, give some thought to doing so. And it is really easy with [ip6neigh](https://github.com/AndreBL/ip6neigh/) running on your OpenWrt router. It is a project, which *automatically* populates DNS on your router with IPv6 host names, making running a local DNS a snap, and it will make your IPv6 life *much* easier.
 
+#### Running your own DNS64 Serer
+
+It is easy to use Google's DNS64 server, but you may want to not be tracked by Googl, or just want to have a DNS server closer to your network.
+
+Setting up your own DNS64 server is not all that difficult if you have minimal experience with the ISC DNS server (**bind9**). First step is to install **bind9** using **apt-get** or **yum** (depending on your distro).
+
+Once **bind9** is installed, edit ` /etc/bind/named.conf.options` file adding the following:
+
+```
+// DNS64 config
+auth-nxdomain no;
+listen-on-v6 { any; };
+allow-query { any; };
+// set to NAT64 prefix
+dns64 64:ff9b::/96 {
+        clients { any; };
+};
+```
+
+Restart **bind9** and then test with:
+
+```
+$ host twitter.com localhost
+twitter.com has IPv6 address 64:ff9b::68f4:2ac1
+twitter.com has IPv6 address 64:ff9b::68f4:2a41
+
+```
+
+Once you have your own DNS64 server up and running, update the 'list DNS' address on your router to advertise your DNS64 server.
+
 #### Restart networking
 
 Once the UCI configuration files are edited, restart networking with:
@@ -86,6 +125,27 @@ You can find this by looking at `ip addr` on your router and seeing what interfa
 Feed the WAN interface via a command line parameter `-w`, and sit back and let the script to its work.
 ```
 /root/nat64_start.sh -w eth0.2
+=== Check that WAN interface is present and up
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+=== Collected address info:
+=== WAN4 107.190.20.37
+=== WAN6 2001:470:ebad::221:29ff:fec3:6cb0
+=== LAN6 2001:470:ebad:8::1
+=== NAT64 Prefix 64:ff9b::/96
+killall: tayga: no process killed
+=== Making tun device: nat64
+Created persistent tun device nat64
+=== Testing tayga
+PING 64:ff9b::8.8.4.4 (64:ff9b::808:404): 56 data bytes
+64 bytes from 64:ff9b::808:404: seq=0 ttl=54 time=16.104 ms
+64 bytes from 64:ff9b::808:404: seq=1 ttl=54 time=15.813 ms
+64 bytes from 64:ff9b::808:404: seq=2 ttl=54 time=16.953 ms
+
+--- 64:ff9b::8.8.4.4 ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 15.813/16.290/16.953 ms
+Pau!
+
 ```
 
 ### Testing NAT64
@@ -113,7 +173,7 @@ Now when your router reboots, NAT64 will be automatically enabled!
 
 The client (e.g. your laptop) then attempts to open a connection to the *fake* address, which your router will pickup, *see* the real IPv4 address embedded, and make a connection to the legacy connected site. It reverses the process for any data returned by the legacy connected site.
 
-You don't have to use Google's **DNS64** service, you can roll your own, but that is beyond the scope of this little nat64 start script.
+You don't have to use Google's **DNS64** service, you can roll your own, but that is beyond the scope of this little nat64 start script. (see *Running your own DNS64 server* for more info)
 
 #### More info about tayga
 
@@ -123,7 +183,8 @@ If you wish to know more about `tayga` please look at the official [tayga websit
 
 Dang those Limiations!
 
-It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages And therefore this `nat64` project is incompatible with LEDE (you *could* ask the LEDE Devs to support `tayga`, since IPv4 content is not going away anytime soon).
+It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt.
+
 
 ### About the Script Author
 
