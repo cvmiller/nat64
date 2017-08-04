@@ -73,7 +73,7 @@ The DNS servers and search domain will be announced in the RA (Router Advertisem
 #### DNS and ip6neigh
 If you aren't running an internal DNS server, give some thought to doing so. And it is really easy with [ip6neigh](https://github.com/AndreBL/ip6neigh/) running on your OpenWrt router. It is a project, which *automatically* populates DNS on your router with IPv6 host names, making running a local DNS a snap, and it will make your IPv6 life *much* easier.
 
-#### Running your own DNS64 Serer
+#### Running your own DNS64 Server
 
 It is easy to use Google's DNS64 server, but you may want to not be tracked by Googl, or just want to have a DNS server closer to your network.
 
