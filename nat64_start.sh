@@ -21,6 +21,7 @@
 # Define interfaces
 #
 WAN="eth0.2"
+WAN6=""
 
 # Define files
 tayga_conf="/etc/tayga.conf"
@@ -30,7 +31,7 @@ NAT64_PREFIX="64:ff9b::/96"
 #NAT64_PREFIX="2001:470:ebbd:ff9b::/96"
 
 # script version
-VERSION=0.96
+VERSION=0.97
 
 
 usage () {
@@ -38,6 +39,7 @@ usage () {
 	echo "help is here"
 	echo "	$0 - sets up tayga.conf, creates tun device, and starts tayga (NAT64)"
 	echo "	-w <int>   WAN interface of the router, typically eth1 or eth0.2"
+	echo "  -6 <int>   IPv6 WAN interface, if different from above"
 	echo "	-h         this help"
 	echo "  "
 	echo " By Craig Miller - Version: $VERSION"
@@ -56,10 +58,12 @@ fi
 DEBUG=0
 numopts=0
 # get args from CLI
-while getopts "?hdw:" options; do
+while getopts "?hdw:6:" options; do
   case $options in
     w ) WAN=$OPTARG
     	numopts=$((numopts+2));;
+    6 ) WAN6="$OPTARG"
+        numopts=$((numopts+2));;	
     d ) DEBUG=1
 		numopts=$((numopts+1));;
     h ) usage;;
@@ -79,6 +83,10 @@ if [ $# -ne 0 ]; then
 	exit 1
 fi
 
+# if no IPv6 WAN interface specified, use the normal WAN interface
+if [ -z "$WAN6" ]; then
+        WAN6="$WAN"
+fi
 
 echo "=== Check that WAN interface is present and up"
 i=0
@@ -110,7 +118,7 @@ LAN_IP6=$(ip addr | grep '::1' | grep noprefixroute | grep -v 'inet6 fd' | awk '
  
 WAN_IP4=$(ip addr show dev "$WAN" | grep "inet " | awk '{print $2}' | cut  -f 1 -d '/')
 
-WAN_IP6=$(ip addr show dev "$WAN" | grep "inet6" | grep global | head -1| awk '{print $2}' | cut  -f 1 -d '/')
+WAN_IP6=$(ip addr show dev "$WAN6" | grep "inet6" | grep global | head -1| awk '{print $2}' | cut  -f 1 -d '/')
 
 echo "=== Collected address info:"
 echo "=== WAN4 $WAN_IP4"
