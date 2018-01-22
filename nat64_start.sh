@@ -30,7 +30,7 @@ NAT64_PREFIX="64:ff9b::/96"
 #NAT64_PREFIX="2001:470:ebbd:ff9b::/96"
 
 # script version
-VERSION=0.95
+VERSION=0.96
 
 
 usage () {
@@ -110,14 +110,30 @@ LAN_IP6=$(ip addr | grep '::1' | grep noprefixroute | grep -v 'inet6 fd' | awk '
  
 WAN_IP4=$(ip addr show dev "$WAN" | grep "inet " | awk '{print $2}' | cut  -f 1 -d '/')
 
-WAN_IP6=$(ip addr show dev "$WAN" | grep "inet6" | grep global | head -1| awk '
-{print $2}' | cut  -f 1 -d '/')
+WAN_IP6=$(ip addr show dev "$WAN" | grep "inet6" | grep global | head -1| awk '{print $2}' | cut  -f 1 -d '/')
 
 echo "=== Collected address info:"
 echo "=== WAN4 $WAN_IP4"
 echo "=== WAN6 $WAN_IP6"
 echo "=== LAN6 $LAN_IP6"
 echo "=== NAT64 Prefix $NAT64_PREFIX"
+
+# check that the addresses have been collected
+
+if [ "$LAN_IP6" == "" ]; then
+	echo "LAN GUA IPv6 not detected. NAT64 requires end to end IPv6 connectivity"
+	exit 1
+fi
+
+if [ "$WAN_IP6" == "" ]; then
+	echo "WAN GUA IPv6 not detected. NAT64 requires end to end IPv6 connectivity"
+	exit 1
+fi
+if [ "$WAN_IP4" == "" ]; then
+	echo "WAN GUA IPv4 not detected. NAT64 requires WAN IPv4 connectivity"
+	exit 1
+fi
+
 
 # remove old NAT64 firewall entries
 iptables -D forwarding_rule -i nat64 -j ACCEPT
