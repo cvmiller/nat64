@@ -30,7 +30,7 @@ NAT64_PREFIX="64:ff9b::/96"
 #NAT64_PREFIX="2001:470:ebbd:ff9b::/96"
 
 # script version
-VERSION=0.94
+VERSION=0.95
 
 
 usage () {
@@ -110,7 +110,7 @@ LAN_IP6=$(ip addr | grep '::1' | grep noprefixroute | grep -v 'inet6 fd' | awk '
  
 WAN_IP4=$(ip addr show dev "$WAN" | grep "inet " | awk '{print $2}' | cut  -f 1 -d '/')
 
-WAN_IP6=$(ip addr show dev eth0.2 | grep "inet6" | grep global | head -1| awk '
+WAN_IP6=$(ip addr show dev "$WAN" | grep "inet6" | grep global | head -1| awk '
 {print $2}' | cut  -f 1 -d '/')
 
 echo "=== Collected address info:"
