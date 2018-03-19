@@ -31,7 +31,7 @@ NAT64_PREFIX="64:ff9b::/96"
 #NAT64_PREFIX="2001:470:ebbd:ff9b::/96"
 
 # script version
-VERSION=0.97
+VERSION=0.98
 
 
 usage () {
@@ -39,7 +39,7 @@ usage () {
 	echo "help is here"
 	echo "	$0 - sets up tayga.conf, creates tun device, and starts tayga (NAT64)"
 	echo "	-w <int>   WAN interface of the router, typically eth1 or eth0.2"
-	echo "  -6 <int>   IPv6 WAN interface, if different from above"
+	echo "	-6 <int>   IPv6 WAN interface, if different from above"
 	echo "	-h         this help"
 	echo "  "
 	echo " By Craig Miller - Version: $VERSION"
@@ -114,11 +114,11 @@ done
 
 
 # get some IP addresses from Router
-LAN_IP6=$(ip addr | grep '::1' | grep noprefixroute | grep -v 'inet6 fd' | awk '{print $2}' | cut -f 1 -d '/')
+LAN_IP6=$(ip addr | grep '::1' | grep noprefixroute | grep -v 'deprecated' | grep -v 'inet6 fd' | awk '{print $2}' | cut -f 1 -d '/')
  
 WAN_IP4=$(ip addr show dev "$WAN" | grep "inet " | awk '{print $2}' | cut  -f 1 -d '/')
 
-WAN_IP6=$(ip addr show dev "$WAN6" | grep "inet6" | grep global | head -1| awk '{print $2}' | cut  -f 1 -d '/')
+WAN_IP6=$(ip addr show dev "$WAN6" | grep "inet6"  | grep -v 'deprecated' | grep global | head -1| awk '{print $2}' | cut  -f 1 -d '/')
 
 echo "=== Collected address info:"
 echo "=== WAN4 $WAN_IP4"
