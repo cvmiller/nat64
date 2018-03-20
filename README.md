@@ -4,7 +4,7 @@ An IPv6 to IPv4 protocol translator for OpenWRT Chaos Calmer (15.05.1), and LEDE
 
 ### Why?
 
-Although running dual stack is the preferred transition method for IPv6, it makes the network more complex, since two protocols need to be run (v4 & v6). A clear way to simply the network is to only run one networking protocol. Since you will want to migrate to IPv6 eventually, the simple choice is to move to an IPv6-only network.
+Although running dual stack is the preferred transition method for IPv6, it makes the network more complex, since two protocols need to be run (v4 & v6). A clear way to simplify the network is to only run one networking protocol. Since you will want to migrate to IPv6 eventually, the simple choice is to move to an IPv6-only network.
 
 ### Creating an IPv6-only network
 
@@ -21,7 +21,7 @@ An OpenWRT-based router, preferably running the latest release, Chaos Calmer (15
 * a little configuration, a script to start-up the **tayga** daemon
 * Google's DNS64 service.
 
-### Getting Tayga for OpenWrt
+### Getting Tayga for OpenWrt (v15.05)
 
 The OpenWrt devs dropped the **tayga** package way back in 2012, but fortunately, it still works, *mostly*. My router is a **brcm47xx**-based, you will want to make sure you use the correct architecture for your router. You can find tayga in:
 ```
@@ -36,7 +36,7 @@ opkg install tayga-xxx.pkg
 
 The tayga package will pull in the `ip` package as well, so make sure your router is connected to the internet.
 
-### Getting Tayga for LEDE
+### Getting Tayga for LEDE (v17.04)
 
 Getting **tayga** for LEDE is even easier, as it is part of the distro, and can be installed directly.
 ```
@@ -75,7 +75,7 @@ If you aren't running an internal DNS server, give some thought to doing so. And
 
 #### Running your own DNS64 Server
 
-It is easy to use Google's DNS64 server, but you may want to not be tracked by Googl, or just want to have a DNS server closer to your network.
+It is easy to use Google's DNS64 server, but you may want to not be tracked by Google, or just want to have a DNS server closer to your network.
 
 Setting up your own DNS64 server is not all that difficult if you have minimal experience with the ISC DNS server (**bind9**). First step is to install **bind9** using **apt-get** or **yum** (depending on your distro).
 
@@ -101,7 +101,7 @@ twitter.com has IPv6 address 64:ff9b::68f4:2a41
 
 ```
 
-Once you have your own DNS64 server up and running, update the 'list DNS' address on your router to advertise your DNS64 server.
+Once you have your own DNS64 server up and running, update the 'list DNS' address in `/etc/config/network` on your router to advertise your DNS64 server.
 
 #### Restart networking
 
@@ -160,7 +160,7 @@ If you want NAT64 to be up and running the next time you reboot the router, you 
 /root/nat64_start.sh -w eth0.2
 
 ```
-For those who prefer CLI, add the above two lines to /etc/rc.local 
+For those who prefer CLI, add the above two lines to `/etc/rc.local` 
 
 Now when your router reboots, NAT64 will be automatically enabled!
 
@@ -183,7 +183,7 @@ If you wish to know more about `tayga` please look at the official [tayga websit
 
 Dang those Limiations!
 
-It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt.
+It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt. Update 2018: As OpenWrt and LEDE remerge, this script will be tested to ensure it works with the new version of OpenWrt 18.04.
 
 
 ### About the Script Author
