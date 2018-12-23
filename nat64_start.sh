@@ -20,7 +20,8 @@
 #
 # Define interfaces
 #
-WAN="eth0.2"
+# get WAN interface from UCI
+WAN=$(/sbin/uci get network.wan.ifname)
 WAN6=""
 
 # Define files
@@ -31,7 +32,7 @@ NAT64_PREFIX="64:ff9b::/96"
 #NAT64_PREFIX="2001:470:ebbd:ff9b::/96"
 
 # script version
-VERSION=0.98
+VERSION=0.99
 
 
 usage () {
@@ -48,10 +49,10 @@ usage () {
 
 
 # check that the WAN interface has been passed in
-if [ $# -eq 0 ]; then
-	usage
-	exit 1
-fi
+#if [ $# -eq 0 ]; then
+#	usage
+#	exit 1
+#fi
 
 
 # default options values

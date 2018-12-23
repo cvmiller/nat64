@@ -31,12 +31,12 @@ Download it to your computer, then `scp` it over to your router, preferable the 
 ```
 opkg update
 opkg install kmod-tun
-opkg install tayga-xxx.pkg
+opkg install tayga
 ```
 
 The tayga package will pull in the `ip` package as well, so make sure your router is connected to the internet.
 
-### Getting Tayga for LEDE (v17.04)
+### Getting Tayga for LEDE (v17.04) and OpenWrt (v18.06.x)
 
 Getting **tayga** for LEDE is even easier, as it is part of the distro, and can be installed directly.
 ```
