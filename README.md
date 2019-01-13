@@ -183,7 +183,9 @@ If you wish to know more about `tayga` please look at the official [tayga websit
 
 Dang those Limiations!
 
-It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt. Update 2018: As OpenWrt and LEDE remerge, this script will be tested to ensure it works with the new version of OpenWrt 18.04.
+It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt. Update 2018: As OpenWrt and LEDE re-merge, this script has been tested to ensure it works with version of OpenWrt 18.04.
+
+Topologis with no GUA on the WAN address are NOT supported.  (it is perfectly acceptable to have only a link-local address on the WAN interface, I just haven't tested this topology)
 
 
 ### About the Script Author
