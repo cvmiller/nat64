@@ -1,6 +1,6 @@
 ## NAT64 on OpenWRT 
 
-An IPv6 to IPv4 protocol translator for OpenWRT Chaos Calmer (15.05.1), and LEDE 17.01.02.
+An IPv6 to IPv4 protocol translator for OpenWRT Chaos Calmer (15.05.1), LEDE 17.01.02, OpenWrt 18.06.1
 
 ### Why?
 
@@ -122,7 +122,7 @@ You can find this by looking at `ip addr` on your router and seeing what interfa
 
 `scp` the `nat64_start.sh` script to the router, and store it in /root, so it will be there on the next reboot.
 
-Feed the WAN interface via a command line parameter `-w`, and sit back and let the script to its work.
+Feed the WAN interface via a command line parameter `-w` (no longer required as of version 1.0), and sit back and let the script to its work.
 ```
 /root/nat64_start.sh -w eth0.2
 === Check that WAN interface is present and up
@@ -157,7 +157,7 @@ At the end of the script, it will ping6 Googles IPv4 DNS server 8.8.4.4. If you 
 If you want NAT64 to be up and running the next time you reboot the router, you will need to add it to the start up items in Luci under System->Startup (at the bottom). Add the following **before** the `exit 0`:
 ```
 # Start tayga NAT64 daemon
-/root/nat64_start.sh -w eth0.2
+/root/nat64_start.sh 
 
 ```
 For those who prefer CLI, add the above two lines to `/etc/rc.local` 
@@ -185,12 +185,13 @@ Dang those Limiations!
 
 It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt. Update 2018: As OpenWrt and LEDE re-merge, this script has been tested to ensure it works with version of OpenWrt 18.04.
 
-Topologis with no GUA on the WAN address are NOT supported.  (it is perfectly acceptable to have only a link-local address on the WAN interface, I just haven't tested this topology)
+Some Topologyes do not use a WAN GUA (Global Unique Address), and instead relay on link-local. This is also a correct topology. As of version 1.0, the script has been updated to support non-GUA-WAN topologies.
+
 
 
 ### About the Script Author
 
-Craig Miller has been an IPv6 advocate since 1998 when he then worked for Bay Networks. He has been working professionally in Telecom/Networking ever since. Look for his other OpenWRT projects, [v6 Brouter](https://github.com/cvmiller/v6brouter) a script to extend a /64 network (when upstream won't give you your own /64) and [v6disc](https://github.com/cvmiller/v6disc) an IPv6 discovery script.
+Craig Miller has been an IPv6 advocate since 1998 when he then worked for Bay Networks. He has been working professionally in Telecom/Networking ever since. Look for his other OpenWRT projects, [v6 Brouter](https://github.com/cvmiller/v6brouter) a script to extend a /64 network (when upstream won't give you your own /64), [v6disc](https://github.com/cvmiller/v6disc) an IPv6 discovery script, and running a [Virtual OpenWrt in a Linux Container LXD](https://github.com/cvmiller/openwrt-lxd).
 
 
 
