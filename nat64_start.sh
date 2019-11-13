@@ -86,9 +86,7 @@ fi
 echo "=== Check that WAN interface is present and up"
 i=0
 max=5
-result=1
-while [ $result -ne 0 ]
-do
+while true; do
 	i=$((i+1))
 	if [ $i -gt $max ]; then 
 		echo "=== Is $WAN the correct WAN interface?" 
@@ -97,8 +95,10 @@ do
 	fi
 	
 	# is $WAN present and UP?
-	ifconfig "$WAN" | grep UP
-	result=$?
+        ip link show dev "$WAN" | grep 'state UP'
+        if [ $? -eq 0 ]; then
+                break
+        fi
 	
 	# sleep if not invoked from terminal
 	if [ ! -t 1 ]; then
@@ -109,11 +109,28 @@ done
 
 
 # get some IP addresses from Router
-LAN_IP6=$(ip addr | grep '::1' | grep noprefixroute | grep -v 'deprecated' | grep -v 'inet6 fd' | awk '{print $2}' | cut -f 1 -d '/')
+i=0
+max=5
+while true; do
+        i=$((i+1))
+        if [ $i -gt $max ]; then
+                break
+        fi
  
-WAN_IP4=$(ip addr show dev "$WAN" | grep "inet " | awk '{print $2}' | cut  -f 1 -d '/')
+        # Are all required IP addresses available?
+        LAN_IP6=$(ip -6 addr | grep '::1' | grep noprefixroute | grep -v 'deprecated' | grep -v 'inet6 fd' | awk '{print $2}' | cut -f 1 -d '/')
+        WAN_IP4=$(ip -4 addr show dev "$WAN" | grep 'inet' | awk '{print $2}' | cut  -f 1 -d '/')
+        WAN_IP6=$(ip -6 addr show dev "$WAN6" | grep -v 'deprecated' | grep 'global' | head -1| awk '{print $2}' | cut  -f 1 -d '/')
+        if [ -n "$WAN_IP4" ] && [ -n "$WAN_IP6" ] && [ -n "$LAN_IP6" ]; then
+                break
+        fi
 
-WAN_IP6=$(ip addr show dev "$WAN6" | grep "inet6"  | grep -v 'deprecated' | grep global | head -1| awk '{print $2}' | cut  -f 1 -d '/')
+        # sleep if not invoked from terminal
+        if [ ! -t 1 ]; then
+                echo "Waiting for IP address..."
+                sleep 10
+        fi
+done
 
 echo "=== Collected address info:"
 echo "=== WAN4 $WAN_IP4"
@@ -126,17 +143,15 @@ echo "=== NAT64 Prefix $NAT64_PREFIX"
 
 
 # check that the addresses have been collected
-
-if [ "$LAN_IP6" == "" ]; then
+if [ -z "$LAN_IP6" ]; then
 	echo "ERROR: LAN GUA IPv6 not detected. NAT64 requires end to end IPv6 connectivity"
 	exit 1
 fi
-
-if [ "$WAN_IP6" == "" ]; then
+if [ -z "$WAN_IP6" ]; then
 	echo "WARNING: WAN GUA IPv6 not detected. NAT64 requires end to end IPv6 connectivity, NAT64 may not work properly"
 	#exit 1
 fi
-if [ "$WAN_IP4" == "" ]; then
+if [ -z "$WAN_IP4" ]; then
 	echo "ERROR: WAN GUA IPv4 not detected. NAT64 requires WAN IPv4 connectivity"
 	exit 1
 fi
@@ -175,7 +190,7 @@ ip addr flush nat64
 ip link set nat64 up
 
 # clear nat64 dynamic map
-rm /tmp/db/tayga/dynamic.map
+[ -s /tmp/db/tayga/dynamic.map ] && rm /tmp/db/tayga/dynamic.map
 
 ip addr add "$WAN_IP4" dev nat64	   		
 #ip addr add "$WAN_IP6" dev nat64
