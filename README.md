@@ -122,7 +122,7 @@ You can find this by looking at `ip addr` on your router and seeing what interfa
 
 `scp` the `nat64_start.sh` script to the router, and store it in /root, so it will be there on the next reboot.
 
-Feed the WAN interface via a command line parameter `-w` (no longer required as of version 1.0), and sit back and let the script to its work.
+Run the nat64_start.sh script. If using PPPoE for your ISP connection, then feed the PPPoE WAN interface via a command line parameter `-w`, and sit back and let the script to its work.
 ```
 /root/nat64_start.sh -w eth0.2
 === Check that WAN interface is present and up

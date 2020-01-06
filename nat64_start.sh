@@ -32,14 +32,14 @@ NAT64_PREFIX="64:ff9b::/96"
 #NAT64_PREFIX="2001:470:ebbd:ff9b::/96"
 
 # script version
-VERSION=1.1
+VERSION=1.2
 
 
 usage () {
 	# show help
 	echo "help is here"
 	echo "	$0 - sets up tayga.conf, creates tun device, and starts tayga (NAT64)"
-	echo "	-w <int>   WAN interface of the router, typically eth1 or eth0.2"
+	echo "	-w <int>   WAN interface of the router, typically eth1 or eth0.2 or pppoe_WAN_DSL"
 	echo "	-6 <int>   IPv6 WAN interface, if different from above"
 	echo "	-h         this help"
 	echo "  "
@@ -97,7 +97,7 @@ do
 	fi
 	
 	# is $WAN present and UP?
-    ip link show dev "$WAN" | grep 'state UP'
+    ip link show dev "$WAN" | egrep 'state UP|UP,LOWER_UP'
 	result=$?
         
 	
@@ -116,7 +116,7 @@ while [ $i -lt $max ]; do
     i=$((i+1))
 
     # Are all required IP addresses available?
-    LAN_IP6=$(ip -6 addr | grep '::1' | grep 'global' |  grep -v 'deprecated' | grep -v 'inet6 fd' | awk '{print $2}' | cut -f 1 -d '/')
+    LAN_IP6=$(ip -6 addr | grep '::1/' | grep 'global' |  grep -v 'deprecated' | grep -v 'inet6 fd' | awk '{print $2}' | cut -f 1 -d '/' | tail -1)
     WAN_IP4=$(ip -4 addr show dev "$WAN" | grep 'inet' | awk '{print $2}' | cut  -f 1 -d '/')
     WAN_IP6=$(ip -6 addr show dev "$WAN6" | grep -v 'deprecated' | grep 'global' | grep -v 'inet6 fd' | head -1| awk '{print $2}' | cut  -f 1 -d '/')
     if [ -n "$WAN_IP4" ] && [ -n "$WAN_IP6" ] && [ -n "$LAN_IP6" ]; then
