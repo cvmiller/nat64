@@ -1,6 +1,6 @@
 ## NAT64 on OpenWRT 
 
-An IPv6 to IPv4 protocol translator for OpenWRT Chaos Calmer (15.05.1), LEDE 17.01.02, OpenWrt 18.06.1
+An IPv6 to IPv4 protocol translator for OpenWRT Chaos Calmer (15.05.1), LEDE 17.01.02, OpenWrt 18.06.1, and OpenWrt 19.07.x
 
 ### Why?
 
@@ -16,7 +16,7 @@ But you will quickly discover that much of the world's content is still only ser
 
 ### What is needed?
 
-An OpenWRT-based router, preferably running the latest release, Chaos Calmer (15.05.1), or LEDE 17.01.02.
+An OpenWRT-based router, preferably running the latest release, Chaos Calmer (15.05.1), or LEDE 17.01.02, or the latest OpenWrt (v19.07.x)
 * A package from the past **tayga** (for OpenWrt available from 12.09)
 * a little configuration, a script to start-up the **tayga** daemon
 * Google's DNS64 service.
@@ -36,7 +36,7 @@ opkg install tayga
 
 The tayga package will pull in the `ip` package as well, so make sure your router is connected to the internet.
 
-### Getting Tayga for LEDE (v17.04) and OpenWrt (v18.06.x)
+### Getting Tayga for LEDE (v17.04) and OpenWrt (v18.06.x & 19.07.x)
 
 Getting **tayga** for LEDE is even easier, as it is part of the distro, and can be installed directly.
 ```
@@ -73,7 +73,7 @@ The DNS servers and search domain will be announced in the RA (Router Advertisem
 #### DNS and ip6neigh
 If you aren't running an internal DNS server, give some thought to doing so. And it is really easy with [ip6neigh](https://github.com/AndreBL/ip6neigh/) running on your OpenWrt router. It is a project, which *automatically* populates DNS on your router with IPv6 host names, making running a local DNS a snap, and it will make your IPv6 life *much* easier.
 
-#### Running your own DNS64 Server
+### Running your own DNS64 Server
 
 It is easy to use Google's DNS64 server, but you may want to not be tracked by Google, or just want to have a DNS server closer to your network.
 
@@ -86,9 +86,10 @@ Once **bind9** is installed, edit ` /etc/bind/named.conf.options` file adding th
 auth-nxdomain no;
 listen-on-v6 { any; };
 allow-query { any; };
+
 // set to NAT64 prefix
 dns64 64:ff9b::/96 {
-        clients { any; };
+    clients { any; };
 };
 ```
 
@@ -98,25 +99,59 @@ Restart **bind9** and then test with:
 $ host twitter.com localhost
 twitter.com has IPv6 address 64:ff9b::68f4:2ac1
 twitter.com has IPv6 address 64:ff9b::68f4:2a41
-
 ```
 
 Once you have your own DNS64 server up and running, update the 'list DNS' address in `/etc/config/network` on your router to advertise your DNS64 server.
 
+#### Running DNS64 on your OpenWrt Router
+
+You don't need to run a different DNS server, if you aren't already running one for DNS64. You can actually run bind9 (aka `named`) on the OpenWrt router. By doing the following you will have DNS64/NAT64 running all on one router.
+
+ * Install bind9 on the router `opkg install bind-server bind-tools`
+ * Disable `dnsmasq` on the router, as it conflicts with `named` <br>
+	`/etc/init.d/dnsmasq disable`
+ * Apply the bind9 config (above) to `/etc/bind/named.conf` file
+ * Start the bind9 daemon `/etc/init.d/named start`
+
+If you have your own DNS server at home, you can point to it using bind-config. at the bottom of `/etc/bind/named.conf` add:
+
+```
+// point to your house DNS Domain e.g. myHouseDNS.net         
+zone "myhousedns.net" IN {         
+    type forward;               
+    forwarders {  
+        // The address of your House DNS server              
+        2001:db8:8011:fd11::1;       
+    };                          
+};                               
+```
+
+Now any DNS requests to your local domain (e.g. myhousedns.net) will be directed to your in-house DNS server, and the rest of the requests, will be served with Synthesized IPv6 addresses (for IPv4-only servers out on the internet).
+
+After adding your house DNS server forwarding lines, remember to restart `named` with `/etc/init.d/named restart`
+
+Note: `ip6neigh **does not** work with bind9.
+
+
+
 #### Restart networking
 
 Once the UCI configuration files are edited, restart networking with:
+
 ```
 /etc/init.d/networking restart
 ```
 
+
 ### A little knowledge
 
-In a perfect world, the old version of tayga would read the UCI configuration file, and be started. Alas, it is from a past release, and for some reason doesn't read the UCI config. So we'll use a script to setup and start `tayga`. This is a little hack to get NAT64 up and running on Chaos Calmer (15.05.1).
+In a perfect world, the old version of tayga would read the UCI configuration file, and be started. Alas, it is from a past release, and for some reason doesn't read the UCI config. So we'll use a script to setup and start `tayga`. This is a little hack to get NAT64 up and running on OpenWrt & LEDE Routers (15.05 thru to the cutrent 19.07.x).
 
 But before we run the script, we need to know what is the WAN interface? Usually `eth1` or `eth0.2`
 
 You can find this by looking at `ip addr` on your router and seeing what interface has the outside/public IPv4 address.
+
+As of version 1.1, the `nat64_start.sh` will automatically detect your `WAN` interface, except for PPPoE WANs.
 
 ### Starting tayga
 
@@ -183,9 +218,9 @@ If you wish to know more about `tayga` please look at the official [tayga websit
 
 Dang those Limiations!
 
-It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt. Update 2018: As OpenWrt and LEDE re-merge, this script has been tested to ensure it works with version of OpenWrt 18.04.
+It has been called to my attention that the forked project, LEDE, of OpenWrt does **not** support the older OpenWrt packages. Fortunately, the LEDE Dev team have ported **tayga** package. However it still requires some setup to run, and the `nat64_start.sh` script has been updated to support LEDE routers as well as OpenWrt. Update 2018: As OpenWrt and LEDE re-merge, this script has been tested to ensure it works with version of OpenWrt 18.04 & 19.07
 
-Some Topologyes do not use a WAN GUA (Global Unique Address), and instead relay on link-local. This is also a correct topology. As of version 1.0, the script has been updated to support non-GUA-WAN topologies.
+Some Topologies do not use a WAN GUA (Global Unique Address), and instead relay on link-local. This is also a correct topology. As of version 1.0, the script has been updated to support non-GUA-WAN topologies.
 
 
 
