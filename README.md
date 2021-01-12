@@ -21,7 +21,31 @@ An OpenWRT-based router, preferably running the latest release, Chaos Calmer (15
 * a little configuration, a script to start-up the **tayga** daemon
 * Google's DNS64 service.
 
-### Getting Tayga for OpenWrt (v15.05)
+- - - 
+## UPDATE: January 2021
+
+THIS SCRIPT is **NO** longer necessary for OpenWrt
+
+Rather than using `tayga` (below), an easier, more modern software package called **Jool** has been implemented on **OpenWrt v19.07.x**.
+
+To install Jool:
+```
+opkg update
+opkg install kmod-jool
+```
+
+To start the Jool NAT64 service:
+```
+/sbin/insmod jool pool6=64:ff9b::/96
+```
+
+To make the NAT64 service start when the router is rebooted, add the `insmod` line to your `/etc/rc.local`
+
+**And you are done!** No need to create config files or change any existing ones. Recommend using `jool` over `tayga` for OpenWrt 19.07.x and newer.
+
+- - -
+
+### Getting Tayga for OpenWrt (v15.05) (Old Method)
 
 The OpenWrt devs dropped the **tayga** package way back in 2012, but fortunately, it still works, *mostly*. My router is a **brcm47xx**-based, you will want to make sure you use the correct architecture for your router. You can find tayga in:
 ```
