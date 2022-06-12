@@ -43,7 +43,7 @@ To make the NAT64 service start when the router is rebooted, add the `insmod` li
 
 **And you are done!** No need to create config files or change any existing ones. Recommend using `jool` over `tayga` for OpenWrt 19.07.x and newer.
 
-# UPDATE: June 2022
+## UPDATE: June 2022
 
 Jool has changed in OpenWrt 21.02.x, and is now at version 5.4.154.x
 
