@@ -43,6 +43,27 @@ To make the NAT64 service start when the router is rebooted, add the `insmod` li
 
 **And you are done!** No need to create config files or change any existing ones. Recommend using `jool` over `tayga` for OpenWrt 19.07.x and newer.
 
+# UPDATE: June 2022
+
+Jool has changed in OpenWrt 21.02.x, and is now at version 5.4.154.x
+
+To install Jool:
+```
+opkg update
+opkg install kmod-jool jool-tools
+```
+
+To start the Jool NAT64 service:
+```
+/sbin/modprobe jool 
+/usr/bin/jool instance add "default" --netfilter --pool6 64:ff9b::/96
+/usr/bin/jool global update source-icmpv6-errors-better on
+```
+
+Because of the *magic* of `jool` you will need to test the NAT64 functionality from a client attached to the OpenWrt router. You *can not* test NAT64 from OpenWrt itself.
+
+Recommend putting the lines above into `/etc/rc.local` so your NAT64 service will restart when your router reboots.
+
 - - -
 
 ### Getting Tayga for OpenWrt (v15.05) (Old Method)
